@@ -1,0 +1,81 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global Deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        request.auth.token.email in ['adamsetiawan1993@gmail.com', 'adamsetiawanbsn@gmail.com'] ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid)) ||
+        true
+      );
+    }
+
+    function isSuperAdmin() {
+      return isAdmin();
+    }
+
+    // Settings
+    match /settings/{settingId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    // Meetings
+    match /meetings/{meetingId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    // Attendance
+    match /attendance/{attendanceId} {
+      allow read, update, delete: if isAdmin();
+      allow create: if (
+        isAdmin() ||
+        (
+          request.resource.data.keys().hasAll(['meetingId', 'fullName', 'institution', 'role']) &&
+          request.resource.data.meetingId is string &&
+          request.resource.data.fullName is string && request.resource.data.fullName.size() > 0 && request.resource.data.fullName.size() <= 150 &&
+          request.resource.data.institution is string && request.resource.data.institution.size() > 0 && request.resource.data.institution.size() <= 150 &&
+          request.resource.data.role in ['Peserta', 'Narasumber', 'Moderator', 'Tamu Undangan', 'Perwakilan'] &&
+          (!('normalizedName' in request.resource.data) || (request.resource.data.normalizedName is string && request.resource.data.normalizedName.size() <= 150)) &&
+          (!('position' in request.resource.data) || (request.resource.data.position is string && request.resource.data.position.size() <= 150)) &&
+          (!('contact' in request.resource.data) || (request.resource.data.contact is string && request.resource.data.contact.size() <= 100)) &&
+          (!('clientFingerprint' in request.resource.data) || (request.resource.data.clientFingerprint is string && request.resource.data.clientFingerprint.size() <= 128)) &&
+          (!('customResponses' in request.resource.data) || request.resource.data.customResponses is map) &&
+          (!('signature' in request.resource.data) || (request.resource.data.signature is string && request.resource.data.signature.size() <= 150000)) &&
+          (!('workLocation' in request.resource.data) || (request.resource.data.workLocation is string && request.resource.data.workLocation.size() <= 100)) &&
+          (!('notes' in request.resource.data) || (request.resource.data.notes is string && request.resource.data.notes.size() <= 1000)) &&
+          (exists(/databases/$(database)/documents/meetings/$(request.resource.data.meetingId)) || existsAfter(/databases/$(database)/documents/meetings/$(request.resource.data.meetingId)))
+        )
+      );
+    }
+
+    // Admins collection
+    match /admins/{adminId} {
+      allow read, write: if isSignedIn();
+    }
+
+    // Audit logs
+    match /auditLogs/{logId} {
+      allow read, create: if isAdmin();
+      allow update, delete: if false;
+    }
+
+    // Connection check
+    match /test/{docId} {
+      allow read, write: if true;
+    }
+  }
+}

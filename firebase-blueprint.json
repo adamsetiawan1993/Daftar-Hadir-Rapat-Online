@@ -1,0 +1,114 @@
+{
+  "entities": {
+    "Meeting": {
+      "title": "Meeting",
+      "description": "Jadwal dan konfigurasi rapat online",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string", "maxLength": 200, "description": "Judul agenda rapat" },
+        "date": { "type": "string", "maxLength": 10, "description": "Tanggal rapat (YYYY-MM-DD)" },
+        "startTime": { "type": "string", "maxLength": 5, "description": "Jam mulai WIB (HH:mm)" },
+        "endTime": { "type": "string", "maxLength": 5, "description": "Jam selesai WIB (HH:mm)" },
+        "platform": { "type": "string", "maxLength": 50, "description": "Platform online (Zoom, Meet, Teams, dll)" },
+        "meetingUrl": { "type": "string", "maxLength": 500, "description": "Tautan ruang video call rapat" },
+        "accessCode": { "type": "string", "maxLength": 50, "description": "Kode akses rapat opsional" },
+        "statusMode": { "type": "string", "enum": ["auto", "manual_open", "manual_closed"], "description": "Status buka/tutup absen rapat" },
+        "customFields": { "type": "array", "description": "Daftar kolom kustom khusus rapat ini" },
+        "useCustomFieldsOnly": { "type": "boolean", "description": "Apakah mengabaikan kolom global" },
+        "description": { "type": "string", "maxLength": 1000, "description": "Catatan atau deskripsi singkat rapat" },
+        "createdAt": { "type": "string", "description": "Waktu pembuatan record" },
+        "updatedAt": { "type": "string", "description": "Waktu pembaruan record" },
+        "createdBy": { "type": "string", "maxLength": 100, "description": "Email pembuat rapat" }
+      },
+      "required": ["title", "date", "startTime", "endTime", "platform", "statusMode"]
+    },
+    "Attendance": {
+      "title": "Attendance",
+      "description": "Data bukti kehadiran peserta pada rapat online tertentu",
+      "type": "object",
+      "properties": {
+        "meetingId": { "type": "string", "maxLength": 128, "description": "ID dokumen rapat" },
+        "fullName": { "type": "string", "maxLength": 150, "description": "Nama lengkap peserta beserta gelar" },
+        "normalizedName": { "type": "string", "maxLength": 150, "description": "Nama untuk pengecekan duplikasi" },
+        "institution": { "type": "string", "maxLength": 150, "description": "Instansi atau unit kerja peserta" },
+        "position": { "type": "string", "maxLength": 150, "description": "Jabatan peserta" },
+        "contact": { "type": "string", "maxLength": 100, "description": "Email atau nomor WhatsApp peserta" },
+        "role": { "type": "string", "enum": ["Peserta", "Narasumber", "Moderator", "Tamu Undangan", "Perwakilan"], "description": "Peran dalam rapat" },
+        "submittedAt": { "type": "string", "description": "Timestamp kehadiran server" },
+        "customResponses": { "type": "object", "description": "Isian kolom kustom tambahan peserta" },
+        "clientFingerprint": { "type": "string", "maxLength": 128, "description": "Hash sesi/perangkat anti-spam" }
+      },
+      "required": ["meetingId", "fullName", "institution", "role"]
+    },
+    "Settings": {
+      "title": "Settings",
+      "description": "Pengaturan global instansi dan form presensi",
+      "type": "object",
+      "properties": {
+        "institutionName": { "type": "string", "maxLength": 200, "description": "Nama instansi utama" },
+        "institutionSub": { "type": "string", "maxLength": 200, "description": "Sub-unit kerja / direktorat" },
+        "themeColor": { "type": "string", "enum": ["orange", "blue", "indigo", "emerald", "teal", "slate"], "description": "Aksen warna tema UI" },
+        "announcement": { "type": "string", "maxLength": 500, "description": "Teks pengumuman di atas form" },
+        "showPosition": { "type": "boolean", "description": "Tampilkan isian jabatan" },
+        "requirePosition": { "type": "boolean", "description": "Wajibkan isian jabatan" },
+        "showContact": { "type": "boolean", "description": "Tampilkan isian kontak" },
+        "requireContact": { "type": "boolean", "description": "Wajibkan isian kontak" },
+        "preventDuplicates": { "type": "boolean", "description": "Cegah isian ganda untuk nama sama" },
+        "autoOpenMinutesBefore": { "type": "number", "description": "Menit sebelum mulai untuk buka otomatis" },
+        "autoCloseMinutesAfter": { "type": "number", "description": "Menit setelah selesai untuk tutup otomatis" },
+        "customFields": { "type": "array", "description": "Daftar kolom kustom tambahan formulir" },
+        "updatedAt": { "type": "string", "description": "Waktu perbaruan" },
+        "updatedBy": { "type": "string", "maxLength": 100, "description": "Admin yang memperbarui" }
+      },
+      "required": ["institutionName"]
+    },
+    "Admin": {
+      "title": "Admin",
+      "description": "Daftar administrator sistem presensi",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string", "maxLength": 100, "description": "Email admin terdaftar" },
+        "name": { "type": "string", "maxLength": 100, "description": "Nama tampilan admin" },
+        "role": { "type": "string", "enum": ["super_admin", "operator"], "description": "Hak akses admin" },
+        "createdAt": { "type": "string", "description": "Waktu ditambahkan" }
+      },
+      "required": ["email", "role"]
+    },
+    "AuditLog": {
+      "title": "AuditLog",
+      "description": "Rekam jejak aksi administratif",
+      "type": "object",
+      "properties": {
+        "adminEmail": { "type": "string", "maxLength": 100, "description": "Email admin pelaksana aksi" },
+        "adminUid": { "type": "string", "maxLength": 128, "description": "UID admin pelaksana aksi" },
+        "action": { "type": "string", "maxLength": 50, "description": "Kode aksi" },
+        "target": { "type": "string", "maxLength": 200, "description": "Objek yang diubah" },
+        "details": { "type": "string", "maxLength": 500, "description": "Keterangan detail" },
+        "timestamp": { "type": "string", "description": "Waktu aksi" }
+      },
+      "required": ["adminEmail", "action"]
+    }
+  },
+  "firestore": {
+    "/meetings/{meetingId}": {
+      "schema": { "$ref": "#/entities/Meeting" },
+      "description": "Koleksi rapat online yang dapat dihadiri peserta"
+    },
+    "/attendance/{attendanceId}": {
+      "schema": { "$ref": "#/entities/Attendance" },
+      "description": "Koleksi bukti kehadiran peserta rapat"
+    },
+    "/settings/{settingId}": {
+      "schema": { "$ref": "#/entities/Settings" },
+      "description": "Koleksi konfigurasi sistem presensi"
+    },
+    "/admins/{adminId}": {
+      "schema": { "$ref": "#/entities/Admin" },
+      "description": "Koleksi administrator dan perannya"
+    },
+    "/auditLogs/{logId}": {
+      "schema": { "$ref": "#/entities/AuditLog" },
+      "description": "Koleksi log audit aktivitas pengelola"
+    }
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "name": "Remix Daftar Hadir Rapat Online",
+  "description": "Aplikasi pencatatan kehadiran peserta rapat online responsif.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
